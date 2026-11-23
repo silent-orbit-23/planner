@@ -3,8 +3,8 @@
 <head>
   <base target="_top">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b0f0c">
+  <!-- viewport-fit=cover: Seite läuft am iPhone auch hinter Uhrzeit-Leiste und Adressleiste -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Golftrip</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Josefin+Sans:wght@300;400;600&family=Dancing+Script:wght@500;600&display=swap" rel="stylesheet">
@@ -328,6 +328,15 @@
       opacity: 0; pointer-events: none; transform: translateY(10px); transition: opacity .25s, transform .25s;
     }
     #toTop.show { opacity: 1; pointer-events: auto; transform: none; }
+
+    /* ===== Handy: Hintergrund über den ganzen Bildschirm ===== */
+    /* Safari hört bei inset:0 über der Adressleiste auf. 100lvh = größte Bildschirmhöhe
+       (ohne eingeblendete Leisten), dazu etwas Reserve nach unten. */
+    #scene { inset: auto; top: 0; left: 0; right: 0; height: 100vh; height: calc(100lvh + 120px); }
+    header { padding-top: calc(34px + env(safe-area-inset-top)); }
+    @media (max-width: 640px) { header { padding-top: calc(26px + env(safe-area-inset-top)); } }
+    footer { padding-bottom: calc(34px + env(safe-area-inset-bottom)); }
+    #toTop { bottom: calc(18px + env(safe-area-inset-bottom)); }
     #toTop svg { width: 22px; height: 22px; stroke: var(--gold); }
   </style>
 </head>
