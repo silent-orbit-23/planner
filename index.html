@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0f0c">
+  <title>Golftrip</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Josefin+Sans:wght@300;400;600&family=Dancing+Script:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold: #e3c780;
+      --gold-deep: #c39d4f;
+      --gold-soft: rgba(227,199,128,.15);
+      --gold-line: rgba(227,199,128,.42);
+      --glass: rgba(10,12,10,.66);
+      --glass-light: rgba(255,255,255,.05);
+      --line: rgba(255,255,255,.16);
+      --text: #f6f2e9;
+      --muted: #bdbfb6;
+      --red: #b24a3d;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      background: #0b0f0c; color: var(--text);
+      font-family: 'Barlow Semi Condensed', 'Segoe UI', Arial, sans-serif;
+      font-size: 16px; line-height: 1.45;
+    }
+
+    /* ---------- Hintergrund ---------- */
+    #scene { position: fixed; inset: 0; z-index: -2; background: linear-gradient(180deg, #3b2a3a 0%, #8a4a3a 30%, #1c2a1f 62%, #0b0f0c 100%); overflow: hidden; }
+    #scene .photo {
+      position: absolute; inset: 0;
+      background-size: cover; background-repeat: no-repeat;
+      background-position: center 35%;
+    }
+    #scene::after {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(5,8,6,.06) 0%, rgba(5,8,6,.22) 45%, rgba(5,8,6,.58) 100%);
+    }
+    @media (max-width: 700px) { #scene .photo { background-position: 50% center; } }
+
+    svg.ic { width: 26px; height: 26px; flex: none; fill: none; stroke: var(--gold); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ---------- Kopf ---------- */
+    header { text-align: center; padding: 34px 16px 24px; }
+    header .flag { width: 34px; height: 34px; }
+    .wordmark { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 2px; }
+    .wordmark .line { flex: 1; max-width: 90px; height: 1px; background: var(--gold-line); }
+    header h1 {
+      margin: 0; font-family: 'Josefin Sans', 'Segoe UI', sans-serif; font-weight: 300;
+      font-size: clamp(38px, 12vw, 64px); letter-spacing: .2em; padding-left: .2em;
+      color: #f4eddc; text-shadow: 0 2px 22px rgba(0,0,0,.55); line-height: 1.1;
+    }
+    header .tagline {
+      margin: 8px 0 0; font-family: 'Dancing Script', cursive; font-weight: 500;
+      font-size: clamp(21px, 5.6vw, 30px); color: #f3e7cc; text-shadow: 0 2px 14px rgba(0,0,0,.6);
+    }
+
+    main { max-width: 660px; margin: 0 auto; padding: 0 12px 30px; }
+
+    .card {
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+      border: 1px solid var(--gold-line); border-radius: 22px;
+      padding: 20px 18px; margin-bottom: 16px;
+      box-shadow: 0 16px 44px rgba(0,0,0,.45);
+      animation: rise .5s ease both;
+    }
+    @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .card-title { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; font-size: 25px; font-weight: 600; letter-spacing: .02em; }
+    .card-title .ic { width: 30px; height: 30px; }
+
+    h3.step { font-size: 17px; font-weight: 500; margin: 20px 0 10px; letter-spacing: .01em; }
+    h4 { font-size: 14px; font-weight: 600; margin: 16px 0 4px; color: var(--gold); }
+    p.help { color: var(--muted); font-size: 14px; margin: 0 0 10px; }
+    label { display: block; font-weight: 600; margin: 12px 0 7px; }
+    .rule { height: 1px; background: var(--gold-line); margin: 18px 0 4px; opacity: .6; }
+
+    input[type=text], input[type=number], input[type=password], select {
+      width: 100%; min-height: 50px; padding: 12px 14px;
+      border: 1px solid var(--line); border-radius: 12px;
+      font-size: 16px; font-family: inherit;
+      background: rgba(0,0,0,.4); color: var(--text);
+    }
+    select { appearance: none; -webkit-appearance: none;
+      background-image: linear-gradient(45deg, transparent 50%, var(--gold) 50%), linear-gradient(135deg, var(--gold) 50%, transparent 50%);
+      background-position: calc(100% - 20px) 21px, calc(100% - 14px) 21px; background-size: 6px 6px; background-repeat: no-repeat; }
+    select option { background: #161a15; color: #fff; }
+    input:focus, select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+
+    /* Auswahlkarten */
+    .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .options.one { grid-template-columns: 1fr; gap: 8px; }
+    .option {
+      display: flex; gap: 12px; align-items: center;
+      min-height: 50px; padding: 12px 14px; margin: 0;
+      border: 1px solid var(--line); border-radius: 12px;
+      background: var(--glass-light);
+      font-size: 15px; font-weight: 400; line-height: 1.35; cursor: pointer;
+      transition: border-color .2s, background .2s, transform .15s, opacity .2s;
+    }
+    .option:active { transform: scale(.985); }
+    .option:has(input:checked) { border-color: var(--gold); background: var(--gold-soft); box-shadow: 0 0 0 1px var(--gold-line) inset; }
+    .option.off, .option:has(input:disabled) { opacity: .35; cursor: not-allowed; }
+    input[type=checkbox], input[type=radio] { accent-color: var(--gold); width: 20px; height: 20px; flex: none; margin: 0; }
+
+    .model { align-items: flex-start; padding: 14px; }
+    .model .ic { margin-top: 1px; }
+    .model b { display: block; font-size: 17px; font-weight: 600; }
+    .model small { display: block; color: var(--muted); font-size: 13.5px; line-height: 1.35; margin-top: 3px; }
+    .model input { margin-top: 4px; order: -1; }
+
+    /* Aufklapp-Abschnitte */
+    details.acc { margin: 10px 0; border: 1px solid var(--gold-line); border-radius: 14px; background: rgba(0,0,0,.35); }
+    details.acc > summary {
+      list-style: none; display: flex; align-items: center; gap: 14px;
+      min-height: 52px; padding: 10px 14px; cursor: pointer; font-size: 17px; font-weight: 500;
+    }
+    details.acc > summary::-webkit-details-marker { display: none; }
+    details.acc > summary::after {
+      content: ""; margin-left: auto; width: 9px; height: 9px; flex: none;
+      border-right: 2px solid var(--gold); border-bottom: 2px solid var(--gold);
+      transform: rotate(45deg); transition: transform .25s; margin-bottom: 4px;
+    }
+    details.acc[open] > summary::after { transform: rotate(-135deg); margin-bottom: -2px; }
+    details.acc[open] > summary { border-bottom: 1px solid var(--line); }
+    details.acc .body { padding: 14px; }
+
+    .days { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .daybox, .timegroup { border: 1px solid var(--line); border-radius: 14px; padding: 12px; background: rgba(0,0,0,.25); }
+    .daybox strong { display: block; margin-bottom: 9px; color: var(--gold); font-weight: 600; }
+    .daybox .option { padding: 10px 12px; min-height: 46px; font-size: 14.5px; gap: 10px; }
+    .timegroup { margin: 12px 0; }
+    .timegrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+    .timegrid .option { font-size: 13px; padding: 10px 8px; min-height: 46px; gap: 7px; }
+    .timegrid .option input { width: 17px; height: 17px; }
+    .months { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .months .option { padding: 10px 12px; font-size: 14px; min-height: 44px; }
+
+    button {
+      border: 0; border-radius: 14px; min-height: 52px; padding: 14px 22px;
+      background: linear-gradient(135deg, #ecd18c, #c39d4f); color: #1a1409;
+      font-family: inherit; font-size: 17px; font-weight: 700; letter-spacing: .02em;
+      cursor: pointer; transition: transform .15s, filter .2s;
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    button .ic { stroke: #1a1409; width: 22px; height: 22px; }
+    button:hover { filter: brightness(1.07); }
+    button:active { transform: scale(.98); }
+    button.secondary { background: var(--glass-light); color: var(--text); border: 1px solid var(--gold-line); }
+    button.danger { background: var(--red); color: #fff; }
+    button.small-btn { min-height: 42px; padding: 9px 16px; font-size: 14px; }
+    button:disabled { opacity: .5; cursor: wait; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+    .hidden { display: none !important; }
+
+    #submitArea { text-align: center; margin: 6px 0 14px; }
+    #submitButton { width: min(100%, 420px); border-radius: 40px; min-height: 58px; box-shadow: 0 10px 26px rgba(0,0,0,.4); }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 9px 18px;
+      border: 1px solid var(--gold-line); border-radius: 30px; background: var(--glass);
+      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); font-size: 14.5px;
+    }
+    .pill .dot { width: 17px; height: 17px; border-radius: 50%; background: var(--gold); color: #1a1409; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+
+    .notice { padding: 13px 14px; border-radius: 12px; margin: 14px 0; font-size: 15px; }
+    .error { background: rgba(178,74,61,.25); border: 1px solid rgba(178,74,61,.65); color: #ffd9d3; }
+    .success { background: rgba(47,107,73,.32); border: 1px solid rgba(90,170,120,.55); color: #d8f3e2; }
+    .info { background: var(--gold-soft); border: 1px solid var(--gold-line); color: #f4e8c8; }
+
+    /* ---------- Ergebnisse ---------- */
+    .summary { border: 1px solid var(--gold-line); border-radius: 14px; background: var(--gold-soft); padding: 6px 16px; margin: 6px 0 4px; }
+    .summary-row { padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+    .summary-row:last-child { border-bottom: 0; }
+    .summary-row .k { display: block; font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .summary-row .v { font-weight: 600; color: #fff; }
+    .summary-row .v em { color: var(--gold); font-style: normal; font-weight: 500; font-size: 14px; }
+    .stat { display: flex; justify-content: space-between; gap: 12px; padding-top: 10px; font-size: 15px; }
+    .stat .cnt { white-space: nowrap; color: var(--muted); }
+    .stat.top .cnt { color: var(--gold); font-weight: 600; }
+    .bar { height: 8px; background: rgba(255,255,255,.12); border-radius: 9px; overflow: hidden; margin-top: 6px; }
+    .bar span { display: block; height: 100%; background: linear-gradient(90deg, #8e7437, #ecd18c); border-radius: 9px; transition: width .6s ease; }
+    .stat:not(.top) + .bar span { background: linear-gradient(90deg, #4c6a58, #7da58b); }
+    .resultGroup { margin: 24px 0; }
+    .resultGroup > h3 { margin: 0 0 6px; color: var(--gold); font-size: 19px; font-weight: 600; letter-spacing: .02em; }
+    .participant { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding: 10px 0; }
+    .tag { font-size: 13px; padding: 3px 11px; border-radius: 20px; }
+    .tag.done { background: rgba(47,107,73,.4); color: #c4ecd2; }
+    .tag.open { background: rgba(255,255,255,.09); color: var(--muted); }
+    .small { font-size: 13px; color: var(--muted); }
+    .othertext { font-size: 14px; color: #efe2c3; padding: 4px 0; }
+
+    /* ---------- Admin (dezent) ---------- */
+    footer { text-align: center; padding: 6px 12px 34px; }
+    #adminToggle { background: none; border: 0; min-height: 36px; padding: 6px 14px; font-size: 12px; font-weight: 400; color: rgba(255,255,255,.42); letter-spacing: .08em; }
+    #adminToggle:hover { filter: none; color: rgba(255,255,255,.75); }
+    #adminBox { max-width: 660px; margin: 6px auto 0; text-align: left; background: var(--glass); border: 1px solid var(--line); border-radius: 14px; padding: 12px; font-size: 13.5px; }
+    .adminline { display: flex; gap: 8px; }
+    .adminline input { min-height: 42px; padding: 8px 12px; font-size: 16px; }
+    .adminline button { min-height: 42px; padding: 8px 16px; font-size: 14px; }
+    .detail { background: rgba(0,0,0,.3); border: 1px solid var(--line); padding: 12px; border-radius: 12px; margin: 10px 0; font-size: 13.5px; }
+    .detail .row { padding: 2px 0; }
+    .detail .row b { color: var(--gold); font-weight: 600; }
+
+    @media (max-width: 640px) {
+      .options { grid-template-columns: 1fr; }
+      .days { grid-template-columns: 1fr; }
+      .timegrid { grid-template-columns: repeat(2, 1fr); }
+      .card { padding: 16px 13px; }
+      header { padding-top: 26px; }
+      .actions button { flex: 1 1 100%; }
+      .actions.row-keep button { flex: 1 1 auto; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+    /* ===== Liquid-Glass-Look (Zusatz) ===== */
+    body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, system-ui, sans-serif; letter-spacing: -.005em; }
+    #scene::after { background: linear-gradient(180deg, rgba(5,8,6,.10) 0%, rgba(5,8,6,.28) 45%, rgba(5,8,6,.62) 100%); }
+    .card {
+      background-image: linear-gradient(150deg, rgba(255,255,255,.20) 0%, rgba(255,255,255,.04) 38%, rgba(255,255,255,.10) 100%);
+      background-color: rgba(10,14,12,.30);
+      -webkit-backdrop-filter: blur(28px) saturate(170%); backdrop-filter: blur(28px) saturate(170%);
+      border: 1px solid rgba(255,255,255,.26); border-radius: 32px;
+      box-shadow: inset 0 1.5px 0 rgba(255,255,255,.50), inset 0 -1px 0 rgba(255,255,255,.10),
+                  inset 1px 0 0 rgba(255,255,255,.12), 0 24px 60px rgba(0,0,0,.38);
+    }
+    .option, input[type=text], input[type=number], input[type=password], select {
+      border-radius: 18px; border: 1px solid rgba(255,255,255,.20);
+      background-color: rgba(255,255,255,.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.22);
+    }
+    select option { background: #161a15; }
+    .option:has(input:checked) {
+      background-color: rgba(227,199,128,.24); border-color: rgba(236,209,140,.85);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.40), 0 0 0 1px rgba(236,209,140,.35), 0 6px 18px rgba(195,157,79,.20);
+    }
+    details.acc {
+      border-radius: 24px; border: 1px solid rgba(255,255,255,.20);
+      background-color: rgba(255,255,255,.06);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.28);
+    }
+    details.acc[open] > summary { border-bottom-color: rgba(255,255,255,.14); }
+    .daybox, .timegroup, .detail, #adminBox {
+      border-radius: 22px; border: 1px solid rgba(255,255,255,.18);
+      background-color: rgba(255,255,255,.05);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.20);
+    }
+    #adminBox { -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
+    .summary {
+      border-radius: 24px; border: 1px solid rgba(255,255,255,.24);
+      background-color: rgba(227,199,128,.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
+    }
+    button {
+      border-radius: 999px;
+      box-shadow: inset 0 1.5px 0 rgba(255,255,255,.65), inset 0 -2px 4px rgba(120,85,20,.25), 0 8px 22px rgba(0,0,0,.30);
+    }
+    button.secondary {
+      background-color: rgba(255,255,255,.10); background-image: none;
+      -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,.28);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
+    }
+    button.danger { box-shadow: inset 0 1px 0 rgba(255,255,255,.30), 0 6px 16px rgba(0,0,0,.28); }
+    #adminToggle { box-shadow: none; background: none; border: 0; }
+    #submitButton { box-shadow: inset 0 1.5px 0 rgba(255,255,255,.70), inset 0 -2px 5px rgba(120,85,20,.30), 0 14px 34px rgba(0,0,0,.40); }
+    .pill {
+      border: 1px solid rgba(255,255,255,.26); background-color: rgba(255,255,255,.10);
+      -webkit-backdrop-filter: blur(20px) saturate(170%); backdrop-filter: blur(20px) saturate(170%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.40);
+    }
+    .notice { border-radius: 18px; }
+    .bar { background: rgba(255,255,255,.14); }
+    .rule { background: rgba(255,255,255,.22); }
+
+    /* ===== Feinabstimmung: durchsichtiger, kräftigere Ränder und Kontrast ===== */
+    .card {
+      background-image: linear-gradient(150deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,.02) 40%, rgba(255,255,255,.07) 100%);
+      background-color: rgba(10,14,12,.12);
+      -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%);
+      border: 1px solid rgba(227,199,128,.50); border-radius: 26px;
+    }
+    .card, details.acc, .option { text-shadow: 0 1px 6px rgba(0,0,0,.45); }
+    details.acc { border: 1px solid rgba(227,199,128,.42); border-radius: 18px; background-color: rgba(0,0,0,.30); }
+    .option, input[type=text], input[type=number], input[type=password], select {
+      border-radius: 14px; border: 1px solid rgba(255,255,255,.20); background-color: rgba(0,0,0,.26);
+    }
+    .option:has(input:checked) { background-color: rgba(227,199,128,.26); border-color: #e3c780; }
+    .daybox, .timegroup, .detail, #adminBox { border-radius: 16px; border: 1px solid rgba(255,255,255,.18); background-color: rgba(0,0,0,.26); }
+    .summary { border: 1px solid rgba(227,199,128,.42); border-radius: 18px; }
+    #scene::after { background: linear-gradient(180deg, rgba(5,8,6,.04) 0%, rgba(5,8,6,.16) 45%, rgba(5,8,6,.50) 100%); }
+
+    /* ===== Ergebnisse: dunkel und übersichtlich ===== */
+    #results.card { background-color: rgba(8,10,9,.50); }
+    details.acc.res { background-color: rgba(0,0,0,.42); }
+    details.acc.res > summary { font-size: 16.5px; }
+    .topline { font-size: 15px; margin-bottom: 8px; }
+    .chips2 { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 14px; }
+    .chip { padding: 6px 13px; border-radius: 999px; font-size: 13.5px; border: 1px solid rgba(255,255,255,.22); background: rgba(0,0,0,.38); color: var(--muted); }
+    .chip.done { border-color: rgba(120,200,150,.65); background: rgba(47,107,73,.38); color: #cdf2dc; }
+    .summary { background-color: rgba(0,0,0,.40); border: 1px solid rgba(227,199,128,.42); border-radius: 18px; }
+    .summary-row .v { color: #fff; line-height: 1.4; }
+    .sub { margin: 2px 0 18px; }
+    .sub:last-child { margin-bottom: 0; }
+    .sub h4 { margin: 12px 0 4px; font-size: 15px; }
+    .sub h5 { margin: 14px 0 0; font-size: 12.5px; color: var(--muted); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+    .item { padding: 10px 0 9px; border-bottom: 1px solid rgba(255,255,255,.09); }
+    .item:last-child { border-bottom: 0; }
+    .itemhead { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; }
+    .itemhead .lbl { font-weight: 500; color: #fff; }
+    .itemhead .cnt { white-space: nowrap; color: var(--muted); font-size: 14px; }
+    .item.top .cnt { color: var(--gold); font-weight: 600; }
+    .item .bar span { background: linear-gradient(90deg, #4c6a58, #7da58b); }
+    .item.top .bar span { background: linear-gradient(90deg, #8e7437, #ecd18c); }
+    .who { margin-top: 6px; font-size: 13px; color: #ddd8c8; }
+    .chips-other h4 { margin-top: 12px; }
+        .favline { padding: 1px 0; }
+    .favmeta { margin-top: 3px; font-size: 13px; color: var(--muted); font-weight: 400; }
+    #toTop {
+      position: fixed; right: 16px; bottom: 18px; z-index: 20;
+      width: 48px; height: 48px; min-height: 0; padding: 0; border-radius: 50%;
+      background: rgba(0,0,0,.45); color: var(--gold); border: 1px solid rgba(227,199,128,.5);
+      -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 8px 22px rgba(0,0,0,.4);
+      opacity: 0; pointer-events: none; transform: translateY(10px); transition: opacity .25s, transform .25s;
+    }
+    #toTop.show { opacity: 1; pointer-events: auto; transform: none; }
+    #toTop svg { width: 22px; height: 22px; stroke: var(--gold); }
+  </style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M6 22V3"/><path d="M6 4h12l-3 4 3 4H6"/></symbol>
+    <symbol id="i-crown" viewBox="0 0 24 24"><path d="M3 19h18M4 19 3 7l5 4 4-6 4 6 5-4-1 12"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6M16.5 4.8a3.5 3.5 0 0 1 0 6.6M22 20c0-2.6-1.6-4.6-4-5.5"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 22s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.3 3.2 3.3 14.8 0 18M12 3c-3.3 3.2-3.3 14.8 0 18"/></symbol>
+    <symbol id="i-plane" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></symbol>
+    <symbol id="i-coins" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+    <symbol id="i-round" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 5V2M9 2h6"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></symbol>
+  </defs>
+</svg>
+
+<div id="scene" aria-hidden="true"><div class="photo"></div></div>
+
+<header>
+  <svg class="ic flag"><use href="#i-flag"/></svg>
+  <div class="wordmark"><span class="line"></span><h1>GOLFTRIP</h1><span class="line"></span></div>
+  <p class="tagline">Gemeinsam planen. Gemeinsam abschlagen.</p>
+</header>
+
+<main>
+  <section class="card" id="voting">
+    <h2 class="card-title"><svg class="ic"><use href="#i-flag"/></svg>Deine Abstimmung</h2>
+
+    <!-- Wer hat schon abgestimmt? Wird direkt beim Laden der Seite befüllt. -->
+    <div id="voteStatus"><p class="small" style="margin:0 0 12px">Stimmen werden geladen …</p></div>
+
+    <label for="name" style="margin-top:0">Wer stimmt ab?</label>
+    <select id="name">
+      <option value="">Teilnehmer auswählen</option>
+      <!-- Die Namen kommen vom Server (stehen nicht im öffentlichen Code). -->
+    </select>
+
+    <div id="statusNote"></div>
+
+    <div id="formBody">
+      <div class="rule"></div>
+      <h3 class="step">1. Wie wollen wir buchen?</h3>
+      <div class="options">
+        <label class="option model"><input type="checkbox" name="model" value="sorglos">
+          <svg class="ic"><use href="#i-crown"/></svg>
+          <span><b>Rundum-sorglos-Paket</b><small><span class="adminName">Der Admin</span> organisiert alles. Nur Wunschmonate, Reisetage und Golfrunden auswählen. Rest wird eine Überraschung.</small></span>
+        </label>
+        <label class="option model"><input type="checkbox" name="model" value="manuell">
+          <svg class="ic"><use href="#i-users"/></svg>
+          <span><b>Manuelle Abstimmung</b><small>Mitbestimmung: Alle stimmen über Reiseziele, Tage, Zeiten und Budget ab.</small></span>
+        </label>
+      </div>
+
+      <!-- Rundum-sorglos-Paket -->
+      <div id="sorglos" class="hidden">
+        <details class="acc" open>
+          <summary><svg class="ic"><use href="#i-calendar"/></svg>2. Dein Wunschmonat</summary>
+          <div class="body">
+            <p class="help">Du kannst mehrere Monate auswählen.</p>
+            <div id="wishMonths" class="options"></div>
+          </div>
+        </details>
+        <details class="acc">
+          <summary><svg class="ic"><use href="#i-calendar"/></svg>3. Deine Reisetage</summary>
+          <div class="body">
+            <p class="help">Du kannst mehrere Möglichkeiten auswählen.</p>
+            <div id="wishDates" class="options one"></div>
+            <div id="wishDatesOtherBox" class="hidden"></div>
+          </div>
+        </details>
+        <details class="acc">
+          <summary><svg class="ic"><use href="#i-flag"/></svg>4. Wie viele Golfrunden?</summary>
+          <div class="body"><div id="sorglosRounds" class="options"></div></div>
+        </details>
+      </div>
+
+      <!-- Manuelle Abstimmung -->
+      <div id="manuell" class="hidden">
+        <details class="acc" open>
+          <summary><svg class="ic"><use href="#i-calendar"/></svg>2. Anreise und Abreise</summary>
+          <div class="body">
+            <div id="arrivalOptions" class="options one"></div>
+            <div id="arrivalOtherBox" class="hidden"></div>
+          </div>
+        </details>
+        <details class="acc">
+          <summary><svg class="ic"><use href="#i-flag"/></svg>3. Wie viele Golfrunden möchtest du spielen?</summary>
+          <div class="body">
+            <div id="manualRounds" class="options"></div>
+            <div id="roundsOtherBox" class="hidden">
+              <label for="roundsOther">Individuelle Rundenzahl (1 bis 6)</label>
+              <input type="number" id="roundsOther" min="1" max="6" step="1" inputmode="numeric" placeholder="z. B. 5">
+            </div>
+          </div>
+        </details>
+        <details class="acc">
+          <summary><svg class="ic"><use href="#i-round"/></svg>4. An welchen Tagen möchtest du spielen?</summary>
+          <div class="body">
+            <p class="help">36 Loch zählt als zwei Golfrunden. Du kannst insgesamt nur so viele Runden auf die Tage verteilen, wie du oben gewählt hast.</p>
+            <div class="days" id="dayPickers"></div>
+            <p class="small" id="dayCounter" style="margin-top:10px"></p>
+          </div>
+        </details>
+        <details class="acc">
+          <summary><svg class="ic"><use href="#i-clock"/></svg>5. Gewünschte Tee Times</summary>
+          <div class="body">
+            <p class="help">Mehrere Zeitfenster sind möglich. Pro Runde gibt es eine eigene Auswahl. „Egal“ lässt sich nicht mit anderen Zeiten kombinieren.</p>
+            <div id="teeTimeGroups"></div>
+          </div>
+        </details>
+        <details class="acc">
+          <summary><svg class="ic"><use href="#i-globe"/></svg>6. Welche Reiseziele kommen infrage?</summary>
+          <div class="body">
+            <p class="help">Dient zur Zielfindung. Plätze werden später ausgesucht.</p>
+            <div id="destinationOptions" class="options"></div>
+            <div id="otherDestination" class="hidden">
+              <label for="otherCountry">Land / Region</label>
+              <input type="text" id="otherCountry" maxlength="200" placeholder="z. B. Südfrankreich">
+              <label for="otherPlace">Ort / Golfplatz</label>
+              <input type="text" id="otherPlace" maxlength="200" placeholder="Gewünschter Ort oder Golfclub">
+            </div>
+          </div>
+        </details>
+        <details class="acc">
+          <summary><svg class="ic"><use href="#i-plane"/></svg>7. In welchen Monaten passt es dir?</summary>
+          <div class="body">
+            <p class="help">Für jedes ausgewählte Reiseziel bitte mindestens einen Monat angeben.</p>
+            <div id="monthArea"><p class="help">Bitte zuerst Reiseziele auswählen.</p></div>
+          </div>
+        </details>
+        <details class="acc">
+          <summary><svg class="ic"><use href="#i-coins"/></svg>8. Budget pro Person</summary>
+          <div class="body">
+            <p class="help">Alles inbegriffen: Unterkunft + Golf + (eventuell Flug)</p>
+            <div id="manualBudget" class="options one"></div>
+          </div>
+        </details>
+        <details class="acc">
+          <summary><svg class="ic"><use href="#i-users"/></svg>9. Wie viele Spieler sollen teilnehmen?</summary>
+          <div class="body"><div id="manualPlayers" class="options"></div></div>
+        </details>
+      </div>
+
+      <div id="message"></div>
+    </div>
+  </section>
+
+  <div id="submitArea">
+    <button id="submitButton" onclick="submitVote()"><svg class="ic"><use href="#i-plane"/></svg>Abstimmung absenden</button>
+    <div><span class="pill" id="votePill"><span class="dot">i</span><span id="pillText">Deine Stimme wurde noch nicht abgegeben.</span></span></div>
+  </div>
+
+  <section class="card hidden" id="results">
+    <h2 class="card-title"><svg class="ic"><use href="#i-list"/></svg>Ergebnisübersicht</h2>
+    <div id="resultContent"></div>
+    <div class="actions">
+      <button class="secondary" onclick="refreshResults()">Ergebnisse aktualisieren</button>
+    </div>
+  </section>
+</main>
+
+<button id="toTop" aria-label="Nach oben" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
+  <svg class="ic" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+<footer>
+  <button id="adminToggle" onclick="toggleAdmin()">Admin</button>
+  <div id="adminBox" class="hidden">
+    <div class="adminline" id="adminLogin">
+      <input type="password" id="adminPinInput" placeholder="Admin-PIN" autocomplete="off">
+      <button class="secondary" onclick="adminLogin()">OK</button>
+    </div>
+    <div id="adminMessage"></div>
+    <div id="adminContent" class="hidden"></div>
+  </div>
+</footer>
+
+<script>
+// HINTERGRUNDBILD (Google Drive). Ohne Link zeigt die Seite einen dunklen Sonnenuntergangs-Verlauf.
+const BACKGROUND_IMAGE_URL = 'https://lh3.googleusercontent.com/d/1cv39DzV-TdwRxyIsENvFMX1OWGGPrVYE';
+if (BACKGROUND_IMAGE_URL) {
+  document.querySelector('#scene .photo').style.backgroundImage = 'url("' + BACKGROUND_IMAGE_URL + '")';
+}
+
+const dates = [
+  'Donnerstagabend Ankunft – Sonntagabend zurück',
+  'Donnerstagabend Ankunft – Montagfrüh zurück',
+  'Freitagfrüh Ankunft – Sonntagabend zurück',
+  'Freitagfrüh Ankunft – Montagfrüh zurück',
+  'Andere'
+];
+const budgets = [
+  '750€ - 1000€',
+  '1000€ - 1250€',
+  '1250€ - 1500€',
+  '1500€ - 2000€',
+  '2000€ - 2500€',
+  '2500€ - 4000€',
+  'Egal Hauptsache die Korken knallen und Bausparer wird aufgelöst 🤣'
+];
+const destinations = [
+  'Türkei','Österreich','Irland','England','Schottland','Niederlande',
+  'Deutschland','Tschechien','Italien','Spanien','Portugal','Dubai','Andere'
+];
+const months = [
+  'Januar','Februar','März','April','Mai','Juni',
+  'Juli','August','September','Oktober','November','Dezember'
+];
+const times = [
+  '09:00–10:00','10:00–11:00','11:00–12:00','12:00–13:00',
+  '13:00–14:00','14:00–15:00','15:00–16:00','16:00–17:00',
+  '17:00–18:00','18:00–19:00','19:00–20:00','20:00–21:00',
+  '21:00–22:00','22:00–23:00','23:00–24:00','Egal'
+];
+const playerOptions = ['4','6','7','8'];
+const DAYS = ['Freitag', 'Samstag', 'Sonntag'];
+const DAY_CHOICES = ['Kein Golf', '18 Loch', '36 Loch'];
+const MODEL_LABEL = { sorglos: 'Rundum-sorglos-Paket', manuell: 'Manuelle Abstimmung' };
+
+/* ---------- Verbindung zum Server (Google Apps Script) ---------- */
+// Adresse der Apps-Script-Bereitstellung (endet auf /exec).
+const API_URL = 'https://script.google.com/macros/s/AKfycbygOX6lMv8f23LYmzHIlgbGSYUisAnGdK2nfGEzntP65vpGbvhFmms3gXpehE1Y1GZb/exec';
+
+// Zugangsschlüssel aus dem Link (#k=…) lesen und auf dem Gerät merken.
+const ACCESS_KEY = (() => {
+  let key = '';
+  try { key = new URLSearchParams(location.hash.slice(1)).get('k') || ''; } catch (e) {}
+  try {
+    if (key) localStorage.setItem('golftripKey', key);
+    else key = localStorage.getItem('golftripKey') || '';
+  } catch (e) {}
+  return key;
+})();
+
+// Ruft eine freigegebene Server-Funktion auf. Liefert ein Promise mit dem Ergebnis.
+// text/plain, damit der Browser keine CORS-Vorabfrage schickt (Apps Script kann darauf nicht antworten).
+function api(fn, ...args) {
+  return fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ fn, args, key: ACCESS_KEY })
+  })
+    .catch(() => { throw new Error('Keine Verbindung zum Server. Bitte später nochmal versuchen.'); })
+    .then(r => r.json().catch(() => { throw new Error('Ungültige Antwort vom Server.'); }))
+    .then(d => {
+      if (!d || d.error) throw new Error((d && d.error) || 'Unbekannter Fehler.');
+      return d.result;
+    });
+}
+
+let adminName = ''; // kommt vom Server
+let adminPin = '';
+let adminDetails = [];
+let editingName = ''; // gesetzt, solange der Admin eine Stimme bearbeitet
+let lastResults = null;
+let armedTimer = null;
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+function optionList(id, values, type, name) {
+  document.getElementById(id).innerHTML = values.map(v =>
+    `<label class="option"><input type="${type}" name="${name}" value="${escapeHtml(v)}"><span>${escapeHtml(v)}</span></label>`
+  ).join('');
+}
+optionList('wishDates', dates, 'checkbox', 'wishDates');
+optionList('wishMonths', months, 'checkbox', 'wishMonths');
+optionList('sorglosRounds', ['2','3','4'], 'radio', 'sRounds');
+optionList('arrivalOptions', dates, 'radio', 'arrival');
+optionList('manualRounds', ['2','3','4','Andere'], 'radio', 'mRounds');
+optionList('destinationOptions', destinations, 'checkbox', 'destinations');
+optionList('manualBudget', budgets, 'radio', 'mBudget');
+optionList('manualPlayers', playerOptions, 'radio', 'mPlayers');
+
+// "Andere" bei Anreise/Abreise: Tag und Tageszeit für Ankunft und Abreise
+const WEEKDAYS = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+const DAYTIMES = ['früh','mittag','abend'];
+function chipGroup(title, name, values) {
+  return `<h4>${title}</h4><div class="months">${values.map(v =>
+    `<label class="option"><input type="radio" name="${name}" value="${v}"><span>${v}</span></label>`
+  ).join('')}</div>`;
+}
+function buildOtherDate(boxId, p) {
+  document.getElementById(boxId).innerHTML =
+    chipGroup('Ankunft – Tag', p + 'ArrDay', WEEKDAYS) +
+    chipGroup('Ankunft – Uhrzeit', p + 'ArrTime', DAYTIMES) +
+    chipGroup('Abreise – Tag', p + 'DepDay', WEEKDAYS) +
+    chipGroup('Abreise – Uhrzeit', p + 'DepTime', DAYTIMES);
+}
+buildOtherDate('wishDatesOtherBox', 's');
+buildOtherDate('arrivalOtherBox', 'm');
+function otherDate(p) {
+  return { arrDay: radio(p + 'ArrDay'), arrTime: radio(p + 'ArrTime'), depDay: radio(p + 'DepDay'), depTime: radio(p + 'DepTime') };
+}
+function otherComplete(o) { return !!(o.arrDay && o.arrTime && o.depDay && o.depTime); }
+function otherLabel(o) {
+  if (typeof o === 'string') return o;
+  if (!o) return '';
+  return `Ankunft ${o.arrDay} ${o.arrTime} – Abreise ${o.depDay} ${o.depTime}`;
+}
+
+// Golftage: je Tag drei Auswahlpunkte, "Kein Golf" ist vorausgewählt
+document.getElementById('dayPickers').innerHTML = DAYS.map(d => `
+  <div class="daybox"><strong>${d}</strong>
+    <div class="options one">${DAY_CHOICES.map((c, i) =>
+      `<label class="option"><input type="radio" name="day${d}" value="${c}" ${i === 0 ? 'checked' : ''}><span>${c}</span></label>`
+    ).join('')}</div>
+  </div>`).join('');
+
+function selected(name) {
+  return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(x => x.value);
+}
+function radio(name) {
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : '';
+}
+
+// Modellwahl: höchstens ein Häkchen. Ein zweiter Klick nimmt es wieder raus (dann ist nichts gewählt).
+document.querySelectorAll('input[name="model"]').forEach(el => el.addEventListener('change', () => {
+  if (el.checked) {
+    document.querySelectorAll('input[name="model"]').forEach(x => { if (x !== el) x.checked = false; });
+  }
+  updateModel();
+}));
+document.querySelectorAll('input[name="wishDates"]').forEach(el => el.addEventListener('change', () => {
+  document.getElementById('wishDatesOtherBox').classList.toggle('hidden', !selected('wishDates').includes('Andere'));
+}));
+document.querySelectorAll('input[name="arrival"]').forEach(el => el.addEventListener('change', () => {
+  document.getElementById('arrivalOtherBox').classList.toggle('hidden', radio('arrival') !== 'Andere');
+}));
+document.querySelectorAll('input[name="mRounds"]').forEach(el => el.addEventListener('change', () => {
+  document.getElementById('roundsOtherBox').classList.toggle('hidden', radio('mRounds') !== 'Andere');
+  onRoundsChange();
+}));
+document.getElementById('roundsOther').addEventListener('input', onRoundsChange);
+document.querySelectorAll('input[name="destinations"]').forEach(el => el.addEventListener('change', renderMonths));
+DAYS.forEach(d => document.querySelectorAll(`input[name="day${d}"]`).forEach(el =>
+  el.addEventListener('change', () => { updateDayOptions(); renderTeeTimes(); })
+));
+document.getElementById('name').addEventListener('change', () => { showMessage(''); applyState(); });
+
+function updateModel() {
+  const model = radio('model');
+  document.getElementById('sorglos').classList.toggle('hidden', model !== 'sorglos');
+  document.getElementById('manuell').classList.toggle('hidden', model !== 'manuell');
+  showMessage('');
+}
+
+/* ---------- Runden und Golftage ---------- */
+function chosenRounds() {
+  const r = radio('mRounds');
+  if (r === 'Andere') {
+    const n = Number(document.getElementById('roundsOther').value);
+    return Number.isInteger(n) && n >= 1 && n <= 6 ? n : 0;
+  }
+  return r ? Number(r) : 0;
+}
+function cost(v) { return v === '36 Loch' ? 2 : v === '18 Loch' ? 1 : 0; }
+function dayVal(d) { return radio('day' + d) || 'Kein Golf'; }
+function dayRounds() { return DAYS.reduce((s, d) => s + cost(dayVal(d)), 0); }
+function updateDayOptions() {
+  const N = chosenRounds();
+  const total = dayRounds();
+  DAYS.forEach(d => {
+    const others = total - cost(dayVal(d));
+    document.querySelectorAll(`input[name="day${d}"]`).forEach(el => {
+      const c = cost(el.value);
+      el.disabled = c > 0 && others + c > N;
+    });
+  });
+  const el = document.getElementById('dayCounter');
+  el.textContent = N
+    ? `Golftage gewählt: ${total} von ${N} Runde(n)${total === N ? ' ✓' : ''}`
+    : 'Bitte zuerst oben die Rundenzahl wählen.';
+}
+function onRoundsChange() {
+  const N = chosenRounds();
+  if (dayRounds() > N) {
+    DAYS.forEach(d => {
+      const none = document.querySelector(`input[name="day${d}"][value="Kein Golf"]`);
+      if (none) none.checked = true;
+    });
+    renderTeeTimes();
+  }
+  updateDayOptions();
+}
+
+function renderMonths() {
+  const chosen = selected('destinations');
+  const area = document.getElementById('monthArea');
+  const previous = {};
+  area.querySelectorAll('input[type=checkbox]:checked').forEach(el => {
+    const d = el.dataset.destination;
+    if (!previous[d]) previous[d] = [];
+    previous[d].push(el.value);
+  });
+  area.innerHTML = chosen.length ? chosen.map(d => `
+    <div class="timegroup">
+      <b>${escapeHtml(d)}</b>
+      <div class="months">
+        ${months.map(m => `<label class="option"><input type="checkbox"
+          data-destination="${escapeHtml(d)}" value="${escapeHtml(m)}"
+          ${((previous[d] || []).includes(m)) ? 'checked' : ''}><span>${m}</span></label>`).join('')}
+      </div>
+    </div>`).join('') : '<p class="help">Bitte zuerst Reiseziele auswählen.</p>';
+  document.getElementById('otherDestination').classList.toggle('hidden', !chosen.includes('Andere'));
+}
+
+function renderTeeTimes() {
+  const area = document.getElementById('teeTimeGroups');
+  const previous = {};
+  area.querySelectorAll('input:checked').forEach(el => {
+    const key = el.dataset.key;
+    if (!previous[key]) previous[key] = [];
+    previous[key].push(el.value);
+  });
+  let html = '';
+  DAYS.forEach(day => {
+    const count = cost(dayVal(day));
+    for (let i = 1; i <= count; i++) {
+      const key = `${day}|${i}`;
+      html += `<div class="timegroup"><b>${day} – Runde ${i}</b>
+        <div class="timegrid">${times.map(t => `
+          <label class="option"><input type="checkbox" data-key="${key}"
+          value="${escapeHtml(t)}" ${((previous[key] || []).includes(t)) ? 'checked' : ''}>
+          <span>${escapeHtml(t)}</span></label>`).join('')}</div></div>`;
+    }
+  });
+  area.innerHTML = html || '<p class="help">Bitte zuerst deine Golftage auswählen.</p>';
+  area.querySelectorAll('input').forEach(el => el.addEventListener('change', () => {
+    const all = [...el.closest('.timegrid').querySelectorAll('input')];
+    if (el.value === 'Egal' && el.checked) {
+      all.forEach(x => { if (x !== el) x.checked = false; });
+    } else if (el.checked) {
+      const egal = all.find(x => x.value === 'Egal');
+      if (egal) egal.checked = false;
+    }
+  }));
+}
+renderTeeTimes();
+updateDayOptions();
+
+function showMessage(message, type) {
+  const el = document.getElementById('message');
+  el.innerHTML = message ? `<div class="notice ${type || 'error'}">${escapeHtml(message)}</div>` : '';
+  if (message) {
+    document.querySelectorAll('#' + (radio('model') || 'sorglos') + ' details.acc').forEach(d => d.open = true);
+    if (el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+function getMonths() {
+  const result = {};
+  document.querySelectorAll('#monthArea input:checked').forEach(el => {
+    const d = el.dataset.destination;
+    if (!result[d]) result[d] = [];
+    result[d].push(el.value);
+  });
+  return result;
+}
+function getTeeTimes() {
+  const result = {};
+  document.querySelectorAll('#teeTimeGroups input:checked').forEach(el => {
+    const [day, round] = el.dataset.key.split('|');
+    if (!result[day]) result[day] = {};
+    if (!result[day][round]) result[day][round] = [];
+    result[day][round].push(el.value);
+  });
+  return result;
+}
+
+function submitVote() {
+  const name = document.getElementById('name').value;
+  const model = radio('model');
+  if (!name) return showMessage('Bitte wähle zuerst deinen Namen aus.');
+  if (!model) return showMessage('Bitte wähle Rundum-sorglos-Paket oder Manuelle Abstimmung.');
+
+  const vote = { name, model };
+  if (model === 'sorglos') {
+    vote.wishDates = selected('wishDates');
+    vote.wishDatesOther = otherDate('s');
+    vote.rounds = radio('sRounds');
+    vote.wishMonths = selected('wishMonths');
+    if (!vote.wishMonths.length || !vote.wishDates.length || !vote.rounds)
+      return showMessage('Bitte fülle alle Felder aus.');
+    if (vote.wishDates.includes('Andere') && !otherComplete(vote.wishDatesOther))
+      return showMessage('Bitte wähle bei „Andere“ Ankunft und Abreise (Tag und Uhrzeit).');
+  } else {
+    vote.arrival = radio('arrival');
+    vote.arrivalOther = otherDate('m');
+    vote.rounds = chosenRounds();
+    vote.days = { Freitag: dayVal('Freitag'), Samstag: dayVal('Samstag'), Sonntag: dayVal('Sonntag') };
+    vote.teeTimes = getTeeTimes();
+    vote.destinations = selected('destinations');
+    vote.months = getMonths();
+    vote.otherCountry = document.getElementById('otherCountry').value.trim();
+    vote.otherPlace = document.getElementById('otherPlace').value.trim();
+    vote.budget = radio('mBudget');
+    vote.players = radio('mPlayers');
+
+    if (!vote.arrival || !radio('mRounds') || !vote.destinations.length || !vote.budget || !vote.players)
+      return showMessage('Bitte fülle alle Pflichtfelder aus.');
+    if (!vote.rounds)
+      return showMessage('Bitte gib eine Rundenzahl zwischen 1 und 6 an.');
+    if (dayRounds() !== vote.rounds)
+      return showMessage('Deine Golftage müssen genau zur Rundenzahl passen (' + dayRounds() + ' von ' + vote.rounds + ' verteilt).');
+    if (vote.arrival === 'Andere' && !otherComplete(vote.arrivalOther))
+      return showMessage('Bitte wähle bei „Andere“ Ankunft und Abreise (Tag und Uhrzeit).');
+    if (vote.destinations.some(d => !vote.months[d] || !vote.months[d].length))
+      return showMessage('Bitte wähle für jedes Reiseziel mindestens einen Monat.');
+    if (vote.destinations.includes('Andere') && (!vote.otherCountry || !vote.otherPlace))
+      return showMessage('Bitte ergänze Land/Region und Ort/Golfplatz.');
+  }
+
+  const button = document.getElementById('submitButton');
+  button.disabled = true;
+  button.lastChild.textContent = 'Wird gesendet …';
+  const reset = () => { button.disabled = false; setSubmitLabel(); };
+
+  if (editingName) {
+    api('adminUpdateVote', vote, adminPin)
+      .then(result => {
+        reset();
+        const who = editingName;
+        cancelEdit();
+        displayResults(result);
+        loadAdmin();
+        adminMessage('Stimme von ' + who + ' wurde geändert.', 'success');
+        document.getElementById('adminBox').scrollIntoView({ behavior: 'smooth' });
+      })
+      .catch(error => { reset(); showMessage(error.message || 'Fehler beim Speichern.'); });
+    return;
+  }
+
+  api('submitVote', vote)
+    .then(result => {
+      reset();
+      displayResults(result);
+      document.getElementById('statusNote').innerHTML =
+        '<div class="notice success">Deine Stimme wurde gespeichert. Danke!</div>';
+      document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+    })
+    .catch(error => { reset(); showMessage(error.message || 'Fehler beim Speichern.'); });
+}
+
+function refreshResults() {
+  api('getResults')
+    .then(displayResults)
+    .catch(e => showMessage(e.message || 'Fehler beim Laden.'));
+}
+
+// Teilnehmer-Auswahl mit den Namen vom Server füllen (gewählter Name bleibt erhalten).
+function fillNames(participants) {
+  const sel = document.getElementById('name');
+  const list = participants.map(p => p.name);
+  const current = [...sel.options].slice(1).map(o => o.value);
+  if (current.join('|') === list.join('|')) return;
+  const value = sel.value;
+  sel.innerHTML = '<option value="">Teilnehmer auswählen</option>' +
+    list.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+  if (list.includes(value)) sel.value = value;
+}
+
+// Zeigt je nach gewähltem Namen entweder das Formular oder die Ergebnisse.
+function applyState() {
+  if (editingName) {
+    document.getElementById('formBody').classList.remove('hidden');
+    document.getElementById('submitArea').classList.remove('hidden');
+    document.getElementById('results').classList.add('hidden');
+    return;
+  }
+  const name = document.getElementById('name').value;
+  const p = lastResults && lastResults.participants.find(x => x.name === name);
+  const voted = !!(name && p && p.submitted);
+  document.getElementById('formBody').classList.toggle('hidden', voted);
+  document.getElementById('submitArea').classList.toggle('hidden', voted);
+  // Ergebnisse (mit Favoriten) stehen immer unten, auch vor der eigenen Stimme.
+  document.getElementById('results').classList.toggle('hidden', !lastResults);
+  const note = document.getElementById('statusNote');
+  if (voted) {
+    if (!note.querySelector('.success'))
+      note.innerHTML = `<div class="notice info">${escapeHtml(name)}, deine Stimme liegt bereits vor. Hier die aktuelle Auswertung. Eine neue Abstimmung ist nur möglich, wenn ${escapeHtml(adminName || 'der Admin')} deine Stimme löscht.</div>`;
+  } else {
+    note.innerHTML = '';
+  }
+}
+
+/* ---------- Auswertung ---------- */
+function slotStart(t) { return parseInt(t.slice(0, 2), 10); }
+function slotEnd(t) { return parseInt(t.slice(6, 8), 10); }
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+function rangeLabel(s, e) { return `${pad(s)}:00–${pad(e)}:00 Uhr`; }
+
+// Fasst zusammenhängende Zeitfenster zusammen: 09–10, 10–11, 11–12 => 09:00–12:00 Uhr
+function mergeSlots(list) {
+  if (list.includes('Egal')) return ['Egal'];
+  const slots = list.filter(t => t !== 'Egal').sort();
+  const out = [];
+  let s = null, e = null;
+  slots.forEach(t => {
+    if (s === null) { s = slotStart(t); e = slotEnd(t); }
+    else if (slotStart(t) === e) { e = slotEnd(t); }
+    else { out.push(rangeLabel(s, e)); s = slotStart(t); e = slotEnd(t); }
+  });
+  if (s !== null) out.push(rangeLabel(s, e));
+  return out;
+}
+// Für die Ergebnisse: Zeitfenster mit denselben Teilnehmern zusammenfassen
+function groupSlots(sec) {
+  const counts = sec.counts, voters = sec.voters || {};
+  const key = t => (voters[t] || []).slice().sort().join('|');
+  const slots = Object.keys(counts).filter(t => t !== 'Egal').sort();
+  const groups = [];
+  slots.forEach(t => {
+    const last = groups[groups.length - 1];
+    if (last && last.end === slotStart(t) && last.key === key(t)) {
+      last.end = slotEnd(t);
+    } else {
+      groups.push({ start: slotStart(t), end: slotEnd(t), count: counts[t], key: key(t), who: voters[t] || [] });
+    }
+  });
+  const items = groups.map(g => ({ label: rangeLabel(g.start, g.end), count: g.count, who: g.who, start: g.start }));
+  items.sort((a, b) => b.count - a.count || a.start - b.start);
+  if (counts['Egal']) items.push({ label: 'Egal', count: counts['Egal'], who: voters['Egal'] || [], start: 99 });
+  return items;
+}
+
+function names(list) {
+  return (list || []).join(', ');
+}
+function renderBars(items, n) {
+  if (!items.length) return '<p class="small">Noch keine Angaben.</p>';
+  const max = Math.max(...items.map(i => i.count));
+  return items.map(i => {
+    const top = i.count === max;
+    const pct = n ? Math.round(i.count / n * 100) : 0;
+    return `<div class="item ${top ? 'top' : ''}">
+      <div class="itemhead"><span class="lbl">${escapeHtml(i.label)}${top ? ' ★' : ''}</span>
+        <span class="cnt">${i.count} von ${n} · ${pct}%</span></div>
+      <div class="bar"><span style="width:${n ? i.count / n * 100 : 0}%"></span></div>
+      ${i.who && i.who.length ? `<div class="who">(${escapeHtml(names(i.who))})</div>` : ''}
+    </div>`;
+  }).join('');
+}
+function itemsFrom(sec, labelFn, order) {
+  let keys = Object.keys(sec.counts);
+  if (order) keys = order.filter(k => keys.includes(k));
+  else keys.sort((a, b) => sec.counts[b] - sec.counts[a]);
+  return keys.map(k => ({ label: labelFn ? labelFn(k) : k, count: sec.counts[k], who: (sec.voters || {})[k] || [] }));
+}
+function renderSection(sec, labelFn, order) {
+  return renderBars(itemsFrom(sec, labelFn, order), sec.n);
+}
+function favorite(sec, labelFn) {
+  const entries = Object.entries(sec.counts);
+  if (!entries.length) return '<span class="small">Noch keine Angaben</span>';
+  const max = Math.max(...entries.map(e => e[1]));
+  const top = entries.filter(e => e[1] === max).map(e => {
+    const label = labelFn ? labelFn(e[0]) : e[0];
+      return `<div class="favline">${escapeHtml(label)} <em>(${escapeHtml(names((sec.voters || {})[e[0]]))})</em></div>`;
+  });
+  const tie = top.length > 1 ? 'gleichauf · ' : '';
+  return `${top.join('')}<div class="favmeta">${tie}${max} von ${sec.n} Stimmen</div>`;
+}
+
+function displayResults(data) {
+  lastResults = data;
+  fillNames(data.participants || []);
+  if (data.adminName) {
+    adminName = data.adminName;
+    document.querySelectorAll('.adminName').forEach(el => { el.textContent = adminName; });
+  }
+  const total = data.total || 0;
+  const roundLabel = k => k + (k === '1' ? ' Runde' : ' Runden');
+  const playerLabel = k => k + ' Spieler';
+  const modelLabel = k => MODEL_LABEL[k] || k;
+
+  // offene Abschnitte beim Aktualisieren merken
+  const prev = [...document.querySelectorAll('#resultContent details.acc')];
+  const openSet = prev.length ? new Set(prev.filter(d => d.open).map(d => d.dataset.title)) : null;
+  const block = (title, icon, inner, openByDefault) => {
+    const open = openSet ? openSet.has(title) : !!openByDefault;
+    return `<details class="acc res" data-title="${title}"${open ? ' open' : ''}>
+      <summary><svg class="ic"><use href="#i-${icon}"/></svg>${title}</summary>
+      <div class="body">${inner}</div></details>`;
+  };
+  const sub = (title, inner, note) =>
+    `<div class="sub"><h4>${title}${note ? ` <span class="small">${note}</span>` : ''}</h4>${inner}</div>`;
+  const stimmen = n => `${n} Stimme${n === 1 ? '' : 'n'}`;
+
+  const statusHtml = `<div class="topline"><b>${total}</b> von ${data.participants.length} Stimmen abgegeben</div><div class="chips2">` +
+    data.participants.map(p =>
+      `<span class="chip ${p.submitted ? 'done' : 'open'}">${escapeHtml(p.name)} ${p.submitted ? '✓' : '· offen'}</span>`
+    ).join('') + '</div>';
+  document.getElementById('voteStatus').innerHTML = statusHtml;
+  let html = statusHtml;
+
+  // 1. Favoriten
+  const favRows = [
+    ['Buchungsmodell', data.models, modelLabel],
+    ['Anreise / Reisetage', data.dates],
+    ['Golfrunden', data.rounds, roundLabel],
+    ['Reiseziel (Manuelle Abstimmung)', data.destinations],
+    ['Budget (Manuelle Abstimmung)', data.budgets],
+    ['Spieleranzahl (Manuelle Abstimmung)', data.players, playerLabel]
+  ].map(([title, sec, fn]) =>
+    `<div class="summary-row"><span class="k">${title}</span><span class="v">${favorite(sec, fn)}</span></div>`
+  ).join('');
+  html += block('Favoriten auf einen Blick', 'list', `<div class="summary">${favRows}</div>`, true);
+
+  // 2. Buchungsmodell
+  html += block('Buchungsmodell', 'crown', renderSection(data.models, modelLabel));
+
+  // 3. Termine
+  let termine = sub('Anreise / Reisetage', renderSection(data.dates), '(Rundum-sorglos-Paket und Manuelle Abstimmung)');
+  if (data.wishMonths && data.wishMonths.n) {
+    termine += sub('Wunschmonate', renderSection(data.wishMonths, null, months), '(Rundum-sorglos-Paket)');
+  }
+  html += block('Termine', 'calendar', termine);
+
+  // 4. Golf
+  let golf = sub('Anzahl Golfrunden', renderSection(data.rounds, roundLabel));
+  if (data.days && data.days.Freitag && data.days.Freitag.n) {
+    golf += sub('Verteilung der Golftage', DAYS.map(day =>
+      `<h5>${day}</h5>${renderSection(data.days[day], null, DAY_CHOICES)}`).join(''), '(Manuelle Abstimmung)');
+  }
+  DAYS.filter(d => (data.teeTimes || {})[d]).forEach(day => {
+    Object.keys(data.teeTimes[day]).sort().forEach(round => {
+      const sec = data.teeTimes[day][round];
+      golf += sub(`Tee Time: ${day}, Runde ${escapeHtml(round)}`, renderBars(groupSlots(sec), sec.n), `(${stimmen(sec.n)})`);
+    });
+  });
+  html += block('Golf', 'flag', golf);
+
+  // 5. Reiseziele
+  let ziele = sub('Reiseziele', renderSection(data.destinations), '(Manuelle Abstimmung)');
+  const otherDest = (data.otherTexts && data.otherTexts.destinations) || [];
+  if (otherDest.length) {
+    ziele += sub('Vorschläge unter „Andere“', otherDest.map(o =>
+      `<div class="othertext">• ${escapeHtml(o.text)} <span class="small">(${escapeHtml(names([o.name]))})</span></div>`).join(''));
+  }
+  Object.entries(data.months || {}).forEach(([dest, sec]) => {
+    ziele += sub(`Monate: ${escapeHtml(dest)}`, renderSection(sec, null, months), `(${stimmen(sec.n)})`);
+  });
+  html += block('Reiseziele und Monate', 'globe', ziele);
+
+  // 6. Budget und Spieler
+  html += block('Budget und Spieler', 'coins',
+    sub('Budget pro Person', renderSection(data.budgets), '(Manuelle Abstimmung)') +
+    sub('Spieleranzahl', renderSection(data.players, playerLabel), '(Manuelle Abstimmung)'));
+
+  document.getElementById('resultContent').innerHTML = html;
+  applyState();
+}
+
+/* ---------- Admin (klein, unten auf der Seite) ---------- */
+function toggleAdmin() {
+  document.getElementById('adminBox').classList.toggle('hidden');
+}
+function adminMessage(msg, type) {
+  document.getElementById('adminMessage').innerHTML = msg ? `<div class="notice ${type || 'error'}">${escapeHtml(msg)}</div>` : '';
+}
+function adminLogin() {
+  const pin = document.getElementById('adminPinInput').value;
+  if (!pin) return adminMessage('Bitte den Admin-PIN eingeben.');
+  adminPin = pin;
+  loadAdmin();
+}
+function formatVote(v) {
+  const rows = [];
+  const row = (k, val) => rows.push(`<div class="row"><b>${escapeHtml(k)}:</b> ${escapeHtml(val)}</div>`);
+  row('Modell', MODEL_LABEL[v.model] || v.model || '–');
+  if (v.model === 'sorglos') {
+    row('Wunschmonate', (v.wishMonths || []).join(', '));
+    row('Reisetage', (v.wishDates || []).join(' | '));
+    if (v.wishDatesOther) row('Anderer Termin', otherLabel(v.wishDatesOther));
+  } else {
+    row('Anreise', v.arrival || '–');
+    if (v.arrivalOther) row('Anderer Zeitraum', otherLabel(v.arrivalOther));
+  }
+  row('Golfrunden', v.rounds);
+  if (v.model === 'manuell') {
+    row('Golftage', DAYS.map(d => `${d}: ${(v.days || {})[d] || '–'}`).join(' · '));
+    Object.entries(v.teeTimes || {}).forEach(([day, rounds]) => {
+      Object.entries(rounds).forEach(([round, list]) => {
+        row(`Tee Time ${day} Runde ${round}`, mergeSlots(list).join(', '));
+      });
+    });
+    row('Reiseziele', (v.destinations || []).join(', '));
+    if (v.otherCountry) row('Anderes Ziel', `${v.otherCountry} – ${v.otherPlace}`);
+    Object.entries(v.months || {}).forEach(([d, list]) => row('Monate ' + d, list.join(', ')));
+  }
+  if (v.budget) row('Budget', v.budget);
+  if (v.players) row('Spieler', v.players);
+  return rows.join('');
+}
+function loadAdmin() {
+  api('adminGetDetails', adminPin)
+    .then(details => {
+      adminMessage('');
+      adminDetails = details;
+      const box = document.getElementById('adminContent');
+      box.classList.remove('hidden');
+      let html = `<h4 style="margin-top:12px">Einzelantworten (${details.length})</h4>`;
+      if (!details.length) html += '<p class="help">Noch keine Stimmen vorhanden.</p>';
+      details.forEach(d => {
+        html += `<div class="detail"><b style="font-size:15px">${escapeHtml(d.name)}</b>
+          <span class="small"> · ${d.timestamp ? escapeHtml(new Date(d.timestamp).toLocaleString('de-DE')) : ''}</span>
+          <div style="margin:8px 0">${formatVote(d.vote)}</div>
+          <div class="actions row-keep" style="margin-top:8px">
+            <button class="secondary small-btn" data-name="${escapeHtml(d.name)}" onclick="startEdit(this)">Bearbeiten</button>
+            <button class="danger small-btn" data-name="${escapeHtml(d.name)}" onclick="deleteVote(this)">Stimme löschen</button>
+          </div>
+        </div>`;
+      });
+      html += `<div class="actions row-keep"><button class="danger small-btn" onclick="resetAll(this)">Alle Teststimmen löschen</button></div>`;
+      box.innerHTML = html;
+    })
+    .catch(e => {
+      adminPin = '';
+      document.getElementById('adminContent').classList.add('hidden');
+      adminMessage(e.message || 'Admin-Anmeldung fehlgeschlagen.');
+    });
+}
+/* ---------- Admin: Stimme bearbeiten ---------- */
+function setSubmitLabel() {
+  document.getElementById('submitButton').lastChild.textContent =
+    editingName ? 'Änderung speichern' : 'Abstimmung absenden';
+}
+function setChecked(name, values) {
+  const list = (values || []).map(String);
+  document.querySelectorAll(`input[name="${name}"]`).forEach(el => { el.checked = list.includes(el.value); });
+}
+function fillOther(p, o) {
+  o = o || {};
+  setChecked(p + 'ArrDay', [o.arrDay]);
+  setChecked(p + 'ArrTime', [o.arrTime]);
+  setChecked(p + 'DepDay', [o.depDay]);
+  setChecked(p + 'DepTime', [o.depTime]);
+}
+function resetForm() {
+  document.querySelectorAll('#formBody input[type=checkbox], #formBody input[type=radio]').forEach(el => {
+    el.checked = false; el.disabled = false;
+  });
+  document.querySelectorAll('#formBody input[type=text], #formBody input[type=number]').forEach(el => { el.value = ''; });
+  DAYS.forEach(d => setChecked('day' + d, ['Kein Golf']));
+  ['wishDatesOtherBox', 'arrivalOtherBox', 'roundsOtherBox'].forEach(id =>
+    document.getElementById(id).classList.add('hidden'));
+  renderMonths();
+  renderTeeTimes();
+  updateDayOptions();
+  updateModel();
+}
+// Füllt das Formular mit einer gespeicherten Stimme.
+function fillForm(v) {
+  resetForm();
+  setChecked('model', [v.model]);
+  updateModel();
+  if (v.model === 'sorglos') {
+    setChecked('wishMonths', v.wishMonths);
+    setChecked('wishDates', v.wishDates);
+    setChecked('sRounds', [v.rounds]);
+    fillOther('s', v.wishDatesOther);
+    document.getElementById('wishDatesOtherBox').classList.toggle('hidden', !(v.wishDates || []).includes('Andere'));
+  } else if (v.model === 'manuell') {
+    setChecked('arrival', [v.arrival]);
+    fillOther('m', v.arrivalOther);
+    document.getElementById('arrivalOtherBox').classList.toggle('hidden', v.arrival !== 'Andere');
+    const r = String(v.rounds || '');
+    if (['2', '3', '4'].includes(r)) {
+      setChecked('mRounds', [r]);
+    } else if (r) {
+      setChecked('mRounds', ['Andere']);
+      document.getElementById('roundsOther').value = r;
+      document.getElementById('roundsOtherBox').classList.remove('hidden');
+    }
+    DAYS.forEach(d => setChecked('day' + d, [(v.days || {})[d] || 'Kein Golf']));
+    updateDayOptions();
+    renderTeeTimes();
+    document.querySelectorAll('#teeTimeGroups input').forEach(el => {
+      const [day, round] = el.dataset.key.split('|');
+      el.checked = (((v.teeTimes || {})[day] || {})[round] || []).includes(el.value);
+    });
+    setChecked('destinations', v.destinations);
+    renderMonths();
+    document.querySelectorAll('#monthArea input').forEach(el => {
+      el.checked = ((v.months || {})[el.dataset.destination] || []).includes(el.value);
+    });
+    document.getElementById('otherCountry').value = v.otherCountry || '';
+    document.getElementById('otherPlace').value = v.otherPlace || '';
+    setChecked('mBudget', [v.budget]);
+    setChecked('mPlayers', [v.players]);
+  }
+  document.querySelectorAll('#formBody details.acc').forEach(d => d.open = true);
+}
+function startEdit(btn) {
+  const d = adminDetails.find(x => x.name === btn.dataset.name);
+  if (!d) return;
+  editingName = d.name;
+  const sel = document.getElementById('name');
+  sel.value = d.name;
+  sel.disabled = true;
+  fillForm(d.vote || {});
+  showMessage('');
+  document.getElementById('statusNote').innerHTML =
+    `<div class="notice info">Bearbeitungsmodus: Du änderst die Stimme von ${escapeHtml(d.name)}.
+      Mit „Änderung speichern“ wird sie überschrieben.
+      <div class="actions row-keep" style="margin-top:10px"><button class="secondary small-btn" onclick="cancelEdit()">Abbrechen</button></div></div>`;
+  setSubmitLabel();
+  applyState();
+  document.getElementById('voting').scrollIntoView({ behavior: 'smooth' });
+}
+function cancelEdit() {
+  editingName = '';
+  const sel = document.getElementById('name');
+  sel.disabled = false;
+  sel.value = '';
+  resetForm();
+  showMessage('');
+  document.getElementById('statusNote').innerHTML = '';
+  setSubmitLabel();
+  applyState();
+}
+
+// Zweistufiges Löschen: erster Tipp fragt nach, zweiter Tipp löscht.
+function armed(btn, label) {
+  if (btn.dataset.armed === '1') return true;
+  clearTimeout(armedTimer);
+  btn.dataset.armed = '1';
+  btn.dataset.orig = btn.textContent;
+  btn.textContent = label;
+  armedTimer = setTimeout(() => {
+    btn.dataset.armed = '';
+    btn.textContent = btn.dataset.orig;
+  }, 4000);
+  return false;
+}
+function deleteVote(btn) {
+  const name = btn.dataset.name;
+  if (!armed(btn, 'Wirklich löschen? Nochmal tippen')) return;
+  btn.disabled = true;
+  api('adminDelete', name, adminPin)
+    .then(result => {
+      adminMessage('Stimme von ' + name + ' wurde gelöscht.', 'success');
+      loadAdmin();
+      displayResults(result);
+    })
+    .catch(e => { btn.disabled = false; adminMessage(e.message || 'Löschen fehlgeschlagen.'); });
+}
+function resetAll(btn) {
+  if (!armed(btn, 'Wirklich ALLE löschen? Nochmal tippen')) return;
+  btn.disabled = true;
+  api('adminResetAll', adminPin)
+    .then(result => {
+      adminMessage('Alle Stimmen wurden gelöscht.', 'success');
+      loadAdmin();
+      displayResults(result);
+    })
+    .catch(e => { btn.disabled = false; adminMessage(e.message || 'Zurücksetzen fehlgeschlagen.'); });
+}
+// Kleiner "Nach oben"-Button, sobald man etwas nach unten gescrollt hat.
+window.addEventListener('scroll', () => {
+  document.getElementById('toTop').classList.toggle('show', window.scrollY > 350);
+}, { passive: true });
+// Beim Start: Abstimmungsstatus laden, damit „schon abgestimmt“ erkannt wird.
+if (!ACCESS_KEY) {
+  document.getElementById('voteStatus').innerHTML =
+    '<div class="notice error">Kein Zugang. Bitte die Seite über den Link aus der Gruppe öffnen.</div>';
+} else {
+  api('getResults')
+    .then(displayResults)
+    .catch(e => {
+      document.getElementById('voteStatus').innerHTML =
+        '<p class="small" style="margin:0 0 12px">Abstimmungsstand konnte nicht geladen werden. ' +
+        escapeHtml(e.message || '') + '</p>';
+    });
+}
+</script>
+
+</body>
+</html>
