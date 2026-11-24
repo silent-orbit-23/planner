@@ -359,6 +359,31 @@
       #edgeTop { background-color: #3d3658; }
     }
     #toTop svg { width: 22px; height: 22px; stroke: var(--gold); }
+
+    /* ===== Bedienung (Schritt 5): sofortige Rückmeldung beim Antippen, weiche Übergänge ===== */
+    /* Gleiche Kurve wie iOS-Übergänge: schneller Start, weiches Auslaufen ohne Nachfedern */
+    :root { --ease: cubic-bezier(.32,.72,0,1); }
+    .option, button, details.acc > summary { touch-action: manipulation; }
+    /* Drücken: sofort (80 ms) eindrücken, beim Loslassen weich zurück */
+    .option { transition: border-color .2s, background-color .2s, box-shadow .2s, opacity .2s, transform .4s var(--ease); }
+    .option:active { transform: scale(.975); transition-duration: .2s, .2s, .2s, .2s, .08s; }
+    .option:has(input:disabled):active { transform: none; }
+    button { transition: transform .4s var(--ease), filter .2s, opacity .2s; }
+    button:active:not(:disabled) { transform: scale(.96); transition-duration: .08s, .2s, .2s; }
+    button.busy:disabled { opacity: 1; cursor: progress; }
+    /* Aufklapp-Kopf leuchtet beim Antippen kurz auf (wie eine iOS-Listenzeile) */
+    details.acc > summary { border-radius: 17px; transition: background-color .25s; -webkit-user-select: none; user-select: none; }
+    details.acc[open] > summary { border-radius: 17px 17px 0 0; }
+    details.acc > summary:active { background-color: rgba(255,255,255,.07); transition-duration: 0s; }
+    details.acc > summary::after { transition: transform .4s var(--ease), margin .4s var(--ease); }
+    /* Beim Zuklappen zeigt der Pfeil sofort die neue Richtung */
+    details.acc.closing > summary::after { transform: rotate(45deg); margin-bottom: 4px; }
+    /* Ladekreis im Absenden-Button */
+    .spinner { display: none; width: 20px; height: 20px; flex: none; border-radius: 50%;
+      border: 2.5px solid rgba(26,20,9,.25); border-top-color: #1a1409; animation: spin .8s linear infinite; }
+    #submitButton.busy svg.ic { display: none; }
+    #submitButton.busy .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -511,7 +536,7 @@
   </section>
 
   <div id="submitArea">
-    <button id="submitButton" onclick="submitVote()"><svg class="ic"><use href="#i-plane"/></svg>Abstimmung absenden</button>
+    <button id="submitButton" onclick="submitVote()"><svg class="ic"><use href="#i-plane"/></svg><span class="spinner" aria-hidden="true"></span>Abstimmung absenden</button>
     <div><span class="pill" id="votePill"><span class="dot">i</span><span id="pillText">Deine Stimme wurde noch nicht abgegeben.</span></span></div>
   </div>
 
@@ -519,7 +544,7 @@
     <h2 class="card-title"><svg class="ic"><use href="#i-list"/></svg>Ergebnisübersicht</h2>
     <div id="resultContent"></div>
     <div class="actions">
-      <button class="secondary" onclick="refreshResults()">Ergebnisse aktualisieren</button>
+      <button class="secondary" onclick="refreshResults(this)">Ergebnisse aktualisieren</button>
     </div>
   </section>
 </main>
@@ -619,6 +644,84 @@ let editingName = ''; // gesetzt, solange der Admin eine Stimme bearbeitet
 let lastResults = null;
 let armedTimer = null;
 
+/* ---------- Bedienung: Bewegung und Rückmeldung ---------- */
+const EASE = 'cubic-bezier(.32,.72,0,1)';
+function reduceMotion() {
+  return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+function canAnimate(el) { return el && el.animate && !reduceMotion(); }
+// Kurze Vibration bei wichtigen Momenten (nur Android, iPhone ignoriert das still)
+function haptic(pattern) { try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) {} }
+// Element weich erscheinen lassen
+function animateIn(el) {
+  if (!canAnimate(el)) return;
+  el.animate([{ opacity: 0, transform: 'translateY(-6px) scale(.98)' }, { opacity: 1, transform: 'none' }],
+    { duration: 380, easing: EASE });
+}
+// Kurzes Kopfschütteln wie bei iOS ("geht nicht")
+function shake(el, px) {
+  if (!canAnimate(el)) return;
+  const a = px || 8;
+  el.animate([{ transform: 'none' }, { transform: `translateX(${-a}px)` }, { transform: `translateX(${a * .7}px)` },
+    { transform: `translateX(${-a * .35}px)` }, { transform: 'none' }], { duration: 380, easing: 'ease-out' });
+}
+// Ein-/Ausblenden: Erscheinen ist weich, Verschwinden sofort (blockiert nie die Eingabe)
+function showEl(el, show) {
+  if (typeof el === 'string') el = document.getElementById(el);
+  const wasHidden = el.classList.contains('hidden');
+  el.classList.toggle('hidden', !show);
+  if (show && wasHidden) animateIn(el);
+}
+
+// iPhone: ohne einen touchstart-Listener greift der Drück-Effekt (:active) nicht
+document.addEventListener('touchstart', () => {}, { passive: true });
+
+// Aufklapp-Abschnitte weich öffnen/schließen. Jederzeit unterbrechbar: ein erneuter Tipp
+// dreht die Bewegung ab der aktuellen Höhe um, statt erst fertig zu laufen.
+function toggleAcc(d) {
+  const body = d.querySelector(':scope > .body');
+  const running = d._anim;
+  const opening = running ? !d._opening : !d.open;
+  const fromH = d.getBoundingClientRect().height;          // aktuelle, sichtbare Höhe
+  const fromO = running ? parseFloat(getComputedStyle(body).opacity) : (d.open ? 1 : 0);
+  if (running) running.forEach(a => a.cancel());
+  d.classList.toggle('closing', !opening);
+  d.open = true;
+  const fullH = d.getBoundingClientRect().height;
+  const toH = opening ? fullH : fullH - body.getBoundingClientRect().height;
+  d.style.overflow = 'hidden';
+  const a1 = d.animate([{ height: fromH + 'px' }, { height: toH + 'px' }],
+    { duration: 440, easing: EASE, fill: 'forwards' });
+  const a2 = body.animate([{ opacity: fromO }, { opacity: opening ? 1 : 0 }],
+    { duration: opening ? 440 : 260, easing: EASE, fill: 'forwards' });
+  d._opening = opening;
+  d._anim = [a1, a2];
+  a1.onfinish = () => {
+    if (!opening) d.open = false;
+    a1.cancel(); a2.cancel();
+    d.style.overflow = '';
+    d.classList.remove('closing');
+    d._anim = null;
+  };
+}
+document.addEventListener('click', e => {
+  const summary = e.target.closest('details.acc > summary');
+  if (summary) {
+    const d = summary.parentElement;
+    if (!canAnimate(d) || !d.querySelector(':scope > .body')) return; // normales Auf/Zu
+    e.preventDefault();
+    toggleAcc(d);
+    return;
+  }
+  // Gesperrte Auswahl angetippt: kurz schütteln, bei Golftagen auch den Rundenzähler
+  const lab = e.target.closest('label.option');
+  if (lab && lab.querySelector('input:disabled')) {
+    shake(lab, 5);
+    if (lab.closest('#dayPickers')) shake(document.getElementById('dayCounter'), 5);
+    haptic(15);
+  }
+});
+
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
@@ -689,13 +792,13 @@ document.querySelectorAll('input[name="model"]').forEach(el => el.addEventListen
   updateModel();
 }));
 document.querySelectorAll('input[name="wishDates"]').forEach(el => el.addEventListener('change', () => {
-  document.getElementById('wishDatesOtherBox').classList.toggle('hidden', !selected('wishDates').includes('Andere'));
+  showEl('wishDatesOtherBox', selected('wishDates').includes('Andere'));
 }));
 document.querySelectorAll('input[name="arrival"]').forEach(el => el.addEventListener('change', () => {
-  document.getElementById('arrivalOtherBox').classList.toggle('hidden', radio('arrival') !== 'Andere');
+  showEl('arrivalOtherBox', radio('arrival') === 'Andere');
 }));
 document.querySelectorAll('input[name="mRounds"]').forEach(el => el.addEventListener('change', () => {
-  document.getElementById('roundsOtherBox').classList.toggle('hidden', radio('mRounds') !== 'Andere');
+  showEl('roundsOtherBox', radio('mRounds') === 'Andere');
   onRoundsChange();
 }));
 document.getElementById('roundsOther').addEventListener('input', onRoundsChange);
@@ -707,8 +810,8 @@ document.getElementById('name').addEventListener('change', () => { showMessage('
 
 function updateModel() {
   const model = radio('model');
-  document.getElementById('sorglos').classList.toggle('hidden', model !== 'sorglos');
-  document.getElementById('manuell').classList.toggle('hidden', model !== 'manuell');
+  showEl('sorglos', model === 'sorglos');
+  showEl('manuell', model === 'manuell');
   showMessage('');
 }
 
@@ -769,7 +872,7 @@ function renderMonths() {
           ${((previous[d] || []).includes(m)) ? 'checked' : ''}><span>${m}</span></label>`).join('')}
       </div>
     </div>`).join('') : '<p class="help">Bitte zuerst Reiseziele auswählen.</p>';
-  document.getElementById('otherDestination').classList.toggle('hidden', !chosen.includes('Andere'));
+  showEl('otherDestination', chosen.includes('Andere'));
 }
 
 function renderTeeTimes() {
@@ -810,6 +913,14 @@ function showMessage(message, type) {
   const el = document.getElementById('message');
   el.innerHTML = message ? `<div class="notice ${type || 'error'}">${escapeHtml(message)}</div>` : '';
   if (message) {
+    const n = el.firstChild;
+    if (!type || type === 'error') {
+      animateIn(n);
+      haptic([30, 40, 30]);
+      setTimeout(() => shake(n), 420); // erst wenn die Seite hingescrollt ist
+    } else {
+      animateIn(n);
+    }
     document.querySelectorAll('#' + (radio('model') || 'sorglos') + ' details.acc').forEach(d => d.open = true);
     if (el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
@@ -879,8 +990,9 @@ function submitVote() {
 
   const button = document.getElementById('submitButton');
   button.disabled = true;
+  button.classList.add('busy');
   button.lastChild.textContent = 'Wird gesendet …';
-  const reset = () => { button.disabled = false; setSubmitLabel(); };
+  const reset = () => { button.disabled = false; button.classList.remove('busy'); setSubmitLabel(); };
 
   if (editingName) {
     api('adminUpdateVote', vote, adminPin)
@@ -901,17 +1013,26 @@ function submitVote() {
     .then(result => {
       reset();
       displayResults(result);
-      document.getElementById('statusNote').innerHTML =
-        '<div class="notice success">Deine Stimme wurde gespeichert. Danke!</div>';
+      const note = document.getElementById('statusNote');
+      note.innerHTML = '<div class="notice success">Deine Stimme wurde gespeichert. Danke!</div>';
+      haptic(20);
       document.getElementById('voting').scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => animateIn(note.firstChild), 250);
     })
     .catch(error => { reset(); showMessage(error.message || 'Fehler beim Speichern.'); });
 }
 
-function refreshResults() {
+function refreshResults(btn) {
+  const label = 'Ergebnisse aktualisieren';
+  if (btn) { btn.disabled = true; btn.classList.add('busy'); btn.textContent = 'Wird aktualisiert …'; }
+  const done = text => {
+    if (!btn) return;
+    btn.textContent = text;
+    setTimeout(() => { btn.textContent = label; btn.disabled = false; btn.classList.remove('busy'); }, text === label ? 0 : 1300);
+  };
   api('getResults')
-    .then(displayResults)
-    .catch(e => showMessage(e.message || 'Fehler beim Laden.'));
+    .then(r => { displayResults(r); haptic(10); done('Aktualisiert ✓'); })
+    .catch(e => { done(label); showMessage(e.message || 'Fehler beim Laden.'); });
 }
 
 // Teilnehmer-Auswahl mit den Namen vom Server füllen (gewählter Name bleibt erhalten).
@@ -1121,10 +1242,18 @@ function displayResults(data) {
 
 /* ---------- Admin (klein, unten auf der Seite) ---------- */
 function toggleAdmin() {
-  document.getElementById('adminBox').classList.toggle('hidden');
+  const box = document.getElementById('adminBox');
+  const show = box.classList.contains('hidden');
+  showEl(box, show);
+  if (show) box.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'nearest' });
 }
 function adminMessage(msg, type) {
-  document.getElementById('adminMessage').innerHTML = msg ? `<div class="notice ${type || 'error'}">${escapeHtml(msg)}</div>` : '';
+  const el = document.getElementById('adminMessage');
+  el.innerHTML = msg ? `<div class="notice ${type || 'error'}">${escapeHtml(msg)}</div>` : '';
+  if (msg) {
+    animateIn(el.firstChild);
+    if (!type || type === 'error') { haptic([30, 40, 30]); setTimeout(() => shake(el.firstChild), 380); }
+  }
 }
 function adminLogin() {
   const pin = document.getElementById('adminPinInput').value;
@@ -1326,7 +1455,7 @@ function resetAll(btn) {
 }
 // Update-Prüfung: Home-Bildschirm-Apps am iPhone laden sich oft nicht neu.
 // Bei jeder Änderung an dieser Datei APP_VERSION um 1 erhöhen.
-const APP_VERSION = '7';
+const APP_VERSION = '8';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' })
     .then(r => r.text())
