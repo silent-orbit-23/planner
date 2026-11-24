@@ -1324,6 +1324,30 @@ function resetAll(btn) {
     })
     .catch(e => { btn.disabled = false; adminMessage(e.message || 'Zurücksetzen fehlgeschlagen.'); });
 }
+// Update-Prüfung: Home-Bildschirm-Apps am iPhone laden sich oft nicht neu.
+// Bei jeder Änderung an dieser Datei APP_VERSION um 1 erhöhen.
+const APP_VERSION = '7';
+function checkForUpdate() {
+  fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' })
+    .then(r => r.text())
+    .then(text => {
+      const m = text.match(/const APP_VERSION = '(\d+)'/);
+      if (!m || m[1] === APP_VERSION) return;
+      // Schutz vor Endlosschleife, falls die neue Version noch nicht überall angekommen ist
+      try {
+        if (sessionStorage.getItem('golftripReloaded') === m[1]) return;
+        sessionStorage.setItem('golftripReloaded', m[1]);
+      } catch (e) {}
+      location.replace(location.pathname + '?v=' + m[1] + location.hash);
+    })
+    .catch(() => {});
+}
+checkForUpdate();
+// App wird aus dem Hintergrund zurückgeholt: erneut prüfen
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') checkForUpdate();
+});
+
 // Kleiner "Nach oben"-Button, sobald man etwas nach unten gescrollt hat.
 window.addEventListener('scroll', () => {
   document.getElementById('toTop').classList.toggle('show', window.scrollY > 350);
