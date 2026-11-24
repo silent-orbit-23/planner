@@ -10,6 +10,8 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Golftrip">
+  <!-- Farbe der Adressleiste bei Android/Chrome (passt zum oberen Bildrand) -->
+  <meta name="theme-color" content="#3d3658">
   <title>Golftrip</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Josefin+Sans:wght@300;400;600&family=Dancing+Script:wght@500;600&display=swap" rel="stylesheet">
@@ -335,27 +337,26 @@
     #toTop.show { opacity: 1; pointer-events: auto; transform: none; }
 
     /* ===== Handy: Hintergrund über den ganzen Bildschirm ===== */
-    /* Safari hört bei inset:0 über der Adressleiste auf. 100lvh = größte Bildschirmhöhe
-       (ohne eingeblendete Leisten), dazu etwas Reserve nach unten. */
-    #scene { inset: auto; top: 0; left: 0; right: 0; height: 100vh; height: calc(100lvh + 120px); }
+    /* Unten berührt nichts Fixiertes den Rand, sonst malt Safari dort einen Balken.
+       Das Bild endet über der Adressleiste und läuft weich in die Seitenfarbe aus (= Farbe vom Rasen unten). */
+    body { background-color: #0b0c08; }
+    #scene { inset: auto; top: 0; left: 0; right: 0; height: 100vh; height: 100svh; background-color: #0b0c08; }
+    #scene::after { background: linear-gradient(180deg, rgba(5,8,6,.04) 0%, rgba(5,8,6,.16) 45%, rgba(5,8,6,.50) 85%, #0b0c08 100%); }
     header { padding-top: calc(34px + env(safe-area-inset-top)); }
     @media (max-width: 640px) { header { padding-top: calc(26px + env(safe-area-inset-top)); } }
     footer { padding-bottom: calc(34px + env(safe-area-inset-bottom)); }
     #toTop { bottom: calc(18px + env(safe-area-inset-bottom)); }
-    /* Safari (iPhone) färbt die Leiste hinter der Uhrzeit und unter der Adressleiste selbst ein,
-       mit der Farbe eines fixierten Elements am Rand. Diese zwei Streifen geben die Farbe vom
-       oberen bzw. unteren Bildrand vor und blenden sichtbar weich ins Bild aus. */
+    /* Safari (iPhone) färbt die Leiste hinter der Uhrzeit selbst ein, mit der Farbe eines
+       fixierten Elements am oberen Rand. Dieser Streifen gibt die Farbe vom oberen Bildrand vor
+       und blendet sichtbar weich ins Bild aus. */
     .edge { position: fixed; left: 0; right: 0; height: 28px; z-index: 30; pointer-events: none; }
     #edgeTop { top: 0; background-color: #91685a;
       -webkit-mask-image: linear-gradient(180deg, #000, transparent); mask-image: linear-gradient(180deg, #000, transparent); }
-    #edgeBottom { bottom: 0; background-color: #23240f;
-      -webkit-mask-image: linear-gradient(0deg, #000, transparent); mask-image: linear-gradient(0deg, #000, transparent); }
 
     /* Handy hochkant: eigenes Hochformat-Bild (liegt als Datei neben index.html) */
     @media (orientation: portrait) {
       #scene .photo { background-image: url("bg-hochformat.webp") !important; background-position: center top; }
       #edgeTop { background-color: #3d3658; }
-      #edgeBottom { background-color: #0b0c08; }
     }
     #toTop svg { width: 22px; height: 22px; stroke: var(--gold); }
   </style>
@@ -380,8 +381,6 @@
 
 <div id="scene" aria-hidden="true"><div class="photo"></div></div>
 <div class="edge" id="edgeTop" aria-hidden="true"></div>
-<div class="edge" id="edgeBottom" aria-hidden="true"></div>
-
 <header>
   <svg class="ic flag"><use href="#i-flag"/></svg>
   <div class="wordmark"><span class="line"></span><h1>GOLFTRIP</h1><span class="line"></span></div>
