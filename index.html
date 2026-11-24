@@ -903,7 +903,7 @@ function submitVote() {
       displayResults(result);
       document.getElementById('statusNote').innerHTML =
         '<div class="notice success">Deine Stimme wurde gespeichert. Danke!</div>';
-      document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('voting').scrollIntoView({ behavior: 'smooth' });
     })
     .catch(error => { reset(); showMessage(error.message || 'Fehler beim Speichern.'); });
 }
@@ -1057,8 +1057,9 @@ function displayResults(data) {
     data.participants.map(p =>
       `<span class="chip ${p.submitted ? 'done' : 'open'}">${escapeHtml(p.name)} ${p.submitted ? '✓' : '· offen'}</span>`
     ).join('') + '</div>';
+  // Abstimmungsstand steht nur oben in „Deine Abstimmung“, die Übersicht beginnt mit den Favoriten.
   document.getElementById('voteStatus').innerHTML = statusHtml;
-  let html = statusHtml;
+  let html = '';
 
   // 1. Favoriten
   const favRows = [
