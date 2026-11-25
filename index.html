@@ -155,7 +155,8 @@
       display: inline-flex; align-items: center; justify-content: center; gap: 10px;
     }
     button .ic { stroke: #1a1409; width: 22px; height: 22px; }
-    button:hover { filter: brightness(1.07); }
+    /* Hover nur mit Maus: am Handy bliebe der Effekt nach dem Antippen sonst hängen */
+    @media (hover: hover) and (pointer: fine) { button:hover { filter: brightness(1.07); } }
     button:active { transform: scale(.98); }
     button.secondary { background: var(--glass-light); color: var(--text); border: 1px solid var(--gold-line); }
     button.danger { background: var(--red); color: #fff; }
@@ -203,7 +204,7 @@
     /* ---------- Admin (dezent) ---------- */
     footer { text-align: center; padding: 6px 12px 34px; }
     #adminToggle { background: none; border: 0; min-height: 36px; padding: 6px 14px; font-size: 12px; font-weight: 400; color: rgba(255,255,255,.42); letter-spacing: .08em; }
-    #adminToggle:hover { filter: none; color: rgba(255,255,255,.75); }
+    @media (hover: hover) and (pointer: fine) { #adminToggle:hover { filter: none; color: rgba(255,255,255,.75); } }
     #adminBox { max-width: 660px; margin: 6px auto 0; text-align: left; background: var(--glass); border: 1px solid var(--line); border-radius: 14px; padding: 12px; font-size: 13.5px; }
     .adminline { display: flex; gap: 8px; }
     .adminline input { min-height: 42px; padding: 8px 12px; font-size: 16px; }
@@ -384,6 +385,20 @@
     #submitButton.busy svg.ic { display: none; }
     #submitButton.busy .spinner { display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== Handy-Optimierung (Schritt 6) ===== */
+    /* Querformat: iPhone vergrößert sonst die Schrift von selbst.
+       Kein Neuladen durch Runterziehen am oberen Rand (halb ausgefüllte Abstimmung ginge verloren). */
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overscroll-behavior-y: none; }
+    body { overscroll-behavior-y: none; }
+    /* Langes Drücken auf Bedienelemente markiert keinen Text und öffnet kein Kopieren-Menü.
+       Normaler Text (Ergebnisse) bleibt markierbar. */
+    button, .option, .chip, details.acc > summary {
+      -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+    }
+    /* Querformat mit Notch: Inhalt und Nach-oben-Pfeil nicht unter die Kamera-Aussparung */
+    main { padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
+    #toTop { right: calc(16px + env(safe-area-inset-right)); }
   </style>
 </head>
 <body>
@@ -479,7 +494,7 @@
             <div id="manualRounds" class="options"></div>
             <div id="roundsOtherBox" class="hidden">
               <label for="roundsOther">Individuelle Rundenzahl (1 bis 6)</label>
-              <input type="number" id="roundsOther" min="1" max="6" step="1" inputmode="numeric" placeholder="z. B. 5">
+              <input type="number" id="roundsOther" min="1" max="6" step="1" inputmode="numeric" enterkeyhint="done" placeholder="z. B. 5">
             </div>
           </div>
         </details>
@@ -505,9 +520,9 @@
             <div id="destinationOptions" class="options"></div>
             <div id="otherDestination" class="hidden">
               <label for="otherCountry">Land / Region</label>
-              <input type="text" id="otherCountry" maxlength="200" placeholder="z. B. Südfrankreich">
+              <input type="text" id="otherCountry" maxlength="200" enterkeyhint="done" autocomplete="off" placeholder="z. B. Südfrankreich">
               <label for="otherPlace">Ort / Golfplatz</label>
-              <input type="text" id="otherPlace" maxlength="200" placeholder="Gewünschter Ort oder Golfclub">
+              <input type="text" id="otherPlace" maxlength="200" enterkeyhint="done" autocomplete="off" placeholder="Gewünschter Ort oder Golfclub">
             </div>
           </div>
         </details>
@@ -556,7 +571,7 @@
   <button id="adminToggle" onclick="toggleAdmin()">Admin</button>
   <div id="adminBox" class="hidden">
     <div class="adminline" id="adminLogin">
-      <input type="password" id="adminPinInput" placeholder="Admin-PIN" autocomplete="off">
+      <input type="password" id="adminPinInput" placeholder="Admin-PIN" autocomplete="off" enterkeyhint="go">
       <button class="secondary" onclick="adminLogin()">OK</button>
     </div>
     <div id="adminMessage"></div>
@@ -1456,7 +1471,7 @@ function resetAll(btn) {
 }
 // Update-Prüfung: Home-Bildschirm-Apps am iPhone laden sich oft nicht neu.
 // Bei jeder Änderung an dieser Datei APP_VERSION um 1 erhöhen.
-const APP_VERSION = '11';
+const APP_VERSION = '12';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' })
     .then(r => r.text())
