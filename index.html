@@ -398,6 +398,15 @@
     /* Querformat mit Notch: Inhalt und Nach-oben-Pfeil nicht unter die Kamera-Aussparung */
     main { padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
     #toTop { right: calc(16px + env(safe-area-inset-right)); }
+
+    /* ===== Extremfälle (Schritt 7) ===== */
+    /* Eingefügte Links ohne Leerzeichen/Bindestrich dürfen umbrechen, statt die Seite zu verbreitern */
+    .othertext, .detail .row { overflow-wrap: anywhere; }
+    /* Uhrzeiten bleiben in einer Zeile, auch auf sehr schmalen Handys */
+    .timegrid .option span { white-space: nowrap; }
+    @media (max-width: 360px) {
+      .timegrid .option { padding: 10px 6px; gap: 5px; font-size: 12.5px; }
+    }
   </style>
 </head>
 <body>
@@ -1188,7 +1197,9 @@ function displayResults(data) {
     `<div class="sub"><h4>${title}${note ? ` <span class="small">${note}</span>` : ''}</h4>${inner}</div>`;
   const stimmen = n => `${n} Stimme${n === 1 ? '' : 'n'}`;
 
-  const statusHtml = `<div class="topline"><b>${total}</b> von ${data.participants.length} Stimmen abgegeben</div><div class="chips2">` +
+  // Gezählt wird wie bei den Häkchen (auch eine im Sheet unlesbare Stimme gilt als abgegeben)
+  const submitted = data.participants.filter(p => p.submitted).length;
+  const statusHtml = `<div class="topline"><b>${submitted}</b> von ${data.participants.length} Stimmen abgegeben</div><div class="chips2">` +
     data.participants.map(p =>
       `<span class="chip ${p.submitted ? 'done' : 'open'}">${escapeHtml(p.name)} ${p.submitted ? '✓' : '· offen'}</span>`
     ).join('') + '</div>';
@@ -1288,7 +1299,7 @@ function formatVote(v) {
     row('Anreise', v.arrival || '–');
     if (v.arrivalOther) row('Anderer Zeitraum', otherLabel(v.arrivalOther));
   }
-  row('Golfrunden', v.rounds);
+  row('Golfrunden', v.rounds || '–');
   if (v.model === 'manuell') {
     row('Golftage', DAYS.map(d => `${d}: ${(v.days || {})[d] || '–'}`).join(' · '));
     Object.entries(v.teeTimes || {}).forEach(([day, rounds]) => {
@@ -1315,8 +1326,9 @@ function loadAdmin() {
       if (!details.length) html += '<p class="help">Noch keine Stimmen vorhanden.</p>';
       details.forEach(d => {
         html += `<div class="detail"><b style="font-size:15px">${escapeHtml(d.name)}</b>
-          <span class="small"> · ${d.timestamp ? escapeHtml(new Date(d.timestamp).toLocaleString('de-DE')) : ''}</span>
-          <div style="margin:8px 0">${formatVote(d.vote)}</div>
+          ${d.timestamp ? `<span class="small"> · ${escapeHtml(new Date(d.timestamp).toLocaleString('de-DE'))}</span>` : ''}
+          ${d.vote && d.vote.model ? `<div style="margin:8px 0">${formatVote(d.vote)}</div>`
+            : '<div class="notice error" style="margin:8px 0">Diese Antwort ist im Sheet nicht lesbar (vermutlich von Hand geändert). Bitte löschen oder über „Bearbeiten“ neu eintragen.</div>'}
           <div class="actions row-keep" style="margin-top:8px">
             <button class="secondary small-btn" data-name="${escapeHtml(d.name)}" onclick="startEdit(this)">Bearbeiten</button>
             <button class="danger small-btn" data-name="${escapeHtml(d.name)}" onclick="deleteVote(this)">Stimme löschen</button>
@@ -1470,7 +1482,7 @@ function resetAll(btn) {
 }
 // Update-Prüfung: Home-Bildschirm-Apps am iPhone laden sich oft nicht neu.
 // Bei jeder Änderung an dieser Datei APP_VERSION um 1 erhöhen.
-const APP_VERSION = '13';
+const APP_VERSION = '14';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' })
     .then(r => r.text())
@@ -1509,12 +1521,23 @@ if (!ACCESS_KEY) {
   document.getElementById('voteStatus').innerHTML =
     '<div class="notice error">Kein Zugang. Bitte die Seite über den Link aus der Gruppe öffnen.</div>';
 } else {
+  loadStart();
+}
+// Erstes Laden. Bei einem Fehler: deutliche Meldung, Formular ausblenden (ohne Namen geht
+// ohnehin nichts) und "Nochmal versuchen" anbieten.
+function loadStart(btn) {
+  if (btn) { btn.disabled = true; btn.classList.add('busy'); btn.textContent = 'Wird geladen …'; }
   api('getResults')
     .then(displayResults)
     .catch(e => {
+      document.getElementById('formBody').classList.add('hidden');
+      document.getElementById('submitArea').classList.add('hidden');
       document.getElementById('voteStatus').innerHTML =
-        '<p class="small" style="margin:0 0 12px">Abstimmungsstand konnte nicht geladen werden. ' +
-        escapeHtml(e.message || '') + '</p>';
+        '<div class="notice error">Abstimmungsstand konnte nicht geladen werden. ' + escapeHtml(e.message || '') +
+        '<div class="actions row-keep" style="margin-top:10px"><button class="secondary small-btn" onclick="loadStart(this)">Nochmal versuchen</button></div></div>';
+      const n = document.querySelector('#voteStatus .notice');
+      animateIn(n);
+      if (btn) { haptic([30, 40, 30]); setTimeout(() => shake(n), 380); }
     });
 }
 </script>
