@@ -1455,7 +1455,7 @@ function resetAll(btn) {
 }
 // Update-Prüfung: Home-Bildschirm-Apps am iPhone laden sich oft nicht neu.
 // Bei jeder Änderung an dieser Datei APP_VERSION um 1 erhöhen.
-const APP_VERSION = '8';
+const APP_VERSION = '10';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' })
     .then(r => r.text())
