@@ -1245,6 +1245,7 @@ function toggleAdmin() {
   const box = document.getElementById('adminBox');
   const show = box.classList.contains('hidden');
   showEl(box, show);
+  updateToTop();
   if (show) box.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'nearest' });
 }
 function adminMessage(msg, type) {
@@ -1455,7 +1456,7 @@ function resetAll(btn) {
 }
 // Update-Prüfung: Home-Bildschirm-Apps am iPhone laden sich oft nicht neu.
 // Bei jeder Änderung an dieser Datei APP_VERSION um 1 erhöhen.
-const APP_VERSION = '10';
+const APP_VERSION = '11';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' })
     .then(r => r.text())
@@ -1478,9 +1479,17 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // Kleiner "Nach oben"-Button, sobald man etwas nach unten gescrollt hat.
-window.addEventListener('scroll', () => {
-  document.getElementById('toTop').classList.toggle('show', window.scrollY > 350);
-}, { passive: true });
+// Ist der Admin-Bereich ganz unten im Bild, verschwindet er, damit er nicht über dem OK-Button liegt.
+function updateToTop() {
+  const footerVisible = document.querySelector('footer').getBoundingClientRect().top < window.innerHeight;
+  document.getElementById('toTop').classList.toggle('show', window.scrollY > 350 && !footerVisible);
+}
+window.addEventListener('scroll', updateToTop, { passive: true });
+window.addEventListener('resize', updateToTop);
+// Admin-PIN mit Enter bestätigen (wie OK)
+document.getElementById('adminPinInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); adminLogin(); }
+});
 // Beim Start: Abstimmungsstatus laden, damit „schon abgestimmt“ erkannt wird.
 if (!ACCESS_KEY) {
   document.getElementById('voteStatus').innerHTML =
